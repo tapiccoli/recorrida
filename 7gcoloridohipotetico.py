@@ -3,9 +3,9 @@ from collections import defaultdict
 import re
 import unicodedata
 import webbrowser
+import os
 
 ARQUIVO_HTML_ENTRADA = "static/pedigree.html"
-ARQUIVO_HTML_SAIDA = "static/pedigree_colorido.html"
 
 # Função de normalização
 def normalizar_nome(nome):
@@ -56,9 +56,10 @@ for chave, tds in sorted(nome_para_tds.items()):
 # Detectar os nomes da célula azul (pai) e amarela (mãe) para nome do arquivo
 azul = soup.find("td", style=lambda v: v and "#cccccc" in v.lower())
 amarelo = soup.find("td", style=lambda v: v and "#ffff99" in v.lower())
-nome_azul = azul.get_text(strip=True).replace("\n", " ") if azul else "azul"
-nome_amarelo = amarelo.get_text(strip=True).replace("\n", " ") if amarelo else "amarelo"
-nome_arquivo = f"static/{nome_azul}_x_{nome_amarelo}.html"
+nome_azul = azul.get_text(strip=True).split("-")[0].strip().replace("\n", " ") if azul else "azul"
+nome_amarelo = amarelo.get_text(strip=True).split("-")[0].strip().replace("\n", " ") if amarelo else "amarelo"
+nome_base = f"{nome_azul}_x_{nome_amarelo}"
+nome_arquivo = f"static/{nome_base}.html"
 
 # Salvar HTML final
 with open(nome_arquivo, "w", encoding="utf-8") as f:
@@ -67,4 +68,4 @@ with open(nome_arquivo, "w", encoding="utf-8") as f:
 print(f"✅ HTML colorido salvo como: {nome_arquivo}")
 
 # Abrir automaticamente no navegador (funciona localmente)
-webbrowser.open(nome_arquivo)
+webbrowser.open(f"file://{os.path.abspath(nome_arquivo)}")
