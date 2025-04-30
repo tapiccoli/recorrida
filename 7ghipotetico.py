@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import os
 from collections import defaultdict
 from urllib.parse import urljoin
+import re
 
 ARQUIVO_PLANILHA = "listaanimais_editado.xlsx"
 ARQUIVO_HTML = "static/pedigree.html"
@@ -125,12 +126,47 @@ if "animal_macho" in st.session_state and "animal_femea" in st.session_state:
 
     if st.button("COLORIR DUPLICAÇÕES"):
         try:
-            subprocess.run(["python", "7gcoloridohipotetico.py"], check=True)
+            with open(ARQUIVO_HTML, "r", encoding="utf-8") as f:
+                soup = BeautifulSoup(f, "html.parser")
+
+            nome_para_tds = defaultdict(list)
+            for td in soup.find_all("td"):
+                nome = td.get_text(strip=True)
+                if nome and nome.upper() != "NÃO INFORMADO" and nome != "-":
+                    nome_para_tds[nome].append(td)
+
+            cores_distintas = [
+                "#FF0000", "#0000FF", "#008000", "#FFA500", "#800080",
+                "#00CED1", "#DC143C", "#FFFF00", "#FF1493", "#20B2AA",
+                "#A52A2A", "#4B0082", "#1E90FF", "#8B0000", "#008080",
+                "#B8860B", "#00FF00", "#FF4500", "#2F4F4F", "#00FA9A"
+            ]
+
+            grupo_idx = 0
+            cores_usadas = {}
+
+            for nome, tds in sorted(nome_para_tds.items()):
+                if len(tds) < 2:
+                    continue
+                if nome not in cores_usadas:
+                    cor = cores_distintas[grupo_idx % len(cores_distintas)]
+                    cores_usadas[nome] = cor
+                    grupo_idx += 1
+                else:
+                    cor = cores_usadas[nome]
+
+                for td in tds:
+                    estilo_atual = td.get("style", "")
+                    td["style"] = f"{estilo_atual}; border-left: 8px solid {cor};"
+
+            with open(ARQUIVO_HTML_COLORIDO, "w", encoding="utf-8") as f:
+                f.write(str(soup))
+
             ctx = st.runtime.scriptrunner.get_script_run_context()
             if ctx and ctx.request:
                 url_base = ctx.request.url.split("/_")[0]
                 url_final = urljoin(url_base, ARQUIVO_HTML_COLORIDO)
                 js = f"window.open('{url_final}', '_blank').focus();"
                 st.components.v1.html(f"<script>{js}</script>", height=0, width=0)
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             st.error(f"❌ Erro ao aplicar coloração: {e}")
