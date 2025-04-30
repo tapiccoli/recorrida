@@ -26,8 +26,13 @@ with open(ARQUIVO_HTML_ENTRADA, "r", encoding="utf-8") as f:
 nome_para_tds = defaultdict(list)
 
 for td in soup.find_all("td"):
-    texto_bruto = td.get_text(separator=" ", strip=True)
-    chave = normalizar_nome(texto_bruto)
+    strong = td.find("strong")
+    if strong and strong.text:
+        nome_bruto = strong.text.strip()
+    else:
+        nome_bruto = td.get_text(separator=" ", strip=True)
+
+    chave = normalizar_nome(nome_bruto)
     if chave and chave != "NAO INFORMADO" and chave != "-":
         nome_para_tds[chave].append(td)
 
@@ -39,13 +44,11 @@ cores_distintas = [
     "#B8860B", "#00FF00", "#FF4500", "#2F4F4F", "#00FA9A"
 ]
 
-# Aplicar coloração
+# Aplicar coloração mesmo que o nome esteja em lados diferentes da árvore
 grupo_idx = 0
 cores_usadas = {}
 
 for chave, tds in sorted(nome_para_tds.items()):
-    if len(tds) < 2:
-        continue  # ainda exige pelo menos 2 ocorrências reais (em lugares distintos)
     if chave not in cores_usadas:
         cor = cores_distintas[grupo_idx % len(cores_distintas)]
         cores_usadas[chave] = cor
@@ -73,3 +76,4 @@ print(f"✅ HTML colorido salvo como: {nome_arquivo}")
 
 # Abrir automaticamente no navegador (funciona localmente)
 webbrowser.open(f"file://{os.path.abspath(nome_arquivo)}")
+
