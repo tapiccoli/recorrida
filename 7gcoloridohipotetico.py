@@ -8,13 +8,15 @@ import os
 ARQUIVO_HTML_ENTRADA = "static/pedigree.html"
 
 # Função de normalização robusta para nomes
+
 def normalizar_nome(nome):
     nome = nome.upper()
     nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('utf-8')
-    nome = re.sub(r"-\s*[A-Z\*]{0,3}\d{3,}", "", nome)  # remove - B123456, - *000333, - UD000059
-    nome = re.sub(r"/\s*[^/]*$", "", nome)                # remove / pelagem
-    nome = re.sub(r"\s+", " ", nome)                       # remove múltiplos espaços
-    return nome.strip()
+    nome = re.sub(r"-\s*[A-Z\*]{0,3}\d{3,}", "", nome)  # remove registros
+    nome = re.sub(r"/\s*[^/]*$", "", nome)                # remove pelagem
+    nome = re.sub(r"\s+", " ", nome)                       # remove espaços extras
+    nome = nome.replace("\xa0", " ").strip()
+    return nome
 
 # Carregar o HTML de entrada
 with open(ARQUIVO_HTML_ENTRADA, "r", encoding="utf-8") as f:
@@ -24,7 +26,7 @@ with open(ARQUIVO_HTML_ENTRADA, "r", encoding="utf-8") as f:
 nome_para_tds = defaultdict(list)
 
 for td in soup.find_all("td"):
-    texto_bruto = td.get_text(separator=" ", strip=True)  # pega texto sem quebras, preserva espaçamento
+    texto_bruto = td.get_text(separator=" ", strip=True)
     chave = normalizar_nome(texto_bruto)
     if chave and chave != "NAO INFORMADO" and chave != "-":
         nome_para_tds[chave].append(td)
@@ -43,7 +45,7 @@ cores_usadas = {}
 
 for chave, tds in sorted(nome_para_tds.items()):
     if len(tds) < 2:
-        continue
+        continue  # ainda exige pelo menos 2 ocorrências reais (em lugares distintos)
     if chave not in cores_usadas:
         cor = cores_distintas[grupo_idx % len(cores_distintas)]
         cores_usadas[chave] = cor
@@ -53,8 +55,7 @@ for chave, tds in sorted(nome_para_tds.items()):
 
     for td in tds:
         estilo_atual = td.get("style", "")
-        if f"border-left" not in estilo_atual:
-            td["style"] = f"{estilo_atual}; border-left: 8px solid {cor};"
+        td["style"] = f"{estilo_atual}; border-left: 8px solid {cor};"
 
 # Detectar os nomes da célula azul (pai) e amarela (mãe) para nome do arquivo
 azul = soup.find("td", style=lambda v: v and "#cccccc" in v.lower())
