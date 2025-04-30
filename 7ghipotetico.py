@@ -3,7 +3,6 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import os
 from collections import defaultdict
-from urllib.parse import urljoin
 import re
 
 ARQUIVO_PLANILHA = "listaanimais_editado.xlsx"
@@ -13,11 +12,6 @@ ARQUIVO_HTML_BASE = "7gbasehipotetico.html"
 
 st.set_page_config(page_title="Pedigree por Macho e Fêmea", layout="centered")
 st.title("🏏️ Gerador de Pedigree (Macho + Fêmea)")
-
-st.markdown("<script>window.getBaseUrl = function() { return window.location.origin; }</script>", unsafe_allow_html=True)
-
-def obter_url_base():
-    return ""  # Substituído por JavaScript que roda no cliente
 
 try:
     planilhas = pd.read_excel(ARQUIVO_PLANILHA, sheet_name=None, dtype=str)
@@ -114,9 +108,7 @@ if "animal_macho" in st.session_state and "animal_femea" in st.session_state:
         html_resultado = f.read()
 
     st.components.v1.html(html_resultado, height=600, scrolling=True)
-
-    if st.button("🔎 Abrir Pedigree em Nova Aba"):
-        st.components.v1.html(f"<script>window.open(window.getBaseUrl() + '/static/pedigree.html', '_blank');</script>", height=0, width=0)
+    st.markdown(f"[🔎 Abrir Pedigree em Nova Aba](/static/pedigree.html)", unsafe_allow_html=True)
 
     st.markdown("---")
     st.subheader("🎨 Coloração de Duplicados")
@@ -159,7 +151,7 @@ if "animal_macho" in st.session_state and "animal_femea" in st.session_state:
             with open(ARQUIVO_HTML_COLORIDO, "w", encoding="utf-8") as f:
                 f.write(str(soup))
 
-            st.components.v1.html(f"<script>window.open(window.getBaseUrl() + '/static/pedigree_colorido.html', '_blank');</script>", height=0, width=0)
+            st.markdown(f"[🎨 Ver Pedigree Colorido em Nova Aba](/static/pedigree_colorido.html)", unsafe_allow_html=True)
 
         except Exception as e:
             st.error(f"❌ Erro ao aplicar coloração: {e}")
