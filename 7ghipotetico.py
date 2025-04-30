@@ -112,12 +112,10 @@ if "animal_macho" in st.session_state and "animal_femea" in st.session_state:
 
     if st.button("🔎 Abrir Pedigree em Nova Aba"):
         try:
-            ctx = st.runtime.scriptrunner.get_script_run_context()
-            if ctx and ctx.request:
-                url_base = ctx.request.url.split("/_")[0]
-                url_final = urljoin(url_base, ARQUIVO_HTML)
-                js = f"window.open('{url_final}', '_blank').focus();"
-                st.components.v1.html(f"<script>{js}</script>", height=0, width=0)
+            url_base = st.experimental_get_url().split("/_")[0]
+            url_final = urljoin(url_base, ARQUIVO_HTML)
+            js = f"window.open('{url_final}', '_blank').focus();"
+            st.components.v1.html(f"<script>{js}</script>", height=0, width=0)
         except Exception as e:
             st.error(f"❌ Erro ao abrir nova aba: {e}")
 
@@ -162,11 +160,9 @@ if "animal_macho" in st.session_state and "animal_femea" in st.session_state:
             with open(ARQUIVO_HTML_COLORIDO, "w", encoding="utf-8") as f:
                 f.write(str(soup))
 
-            ctx = st.runtime.scriptrunner.get_script_run_context()
-            if ctx and ctx.request:
-                url_base = ctx.request.url.split("/_")[0]
-                url_final = urljoin(url_base, ARQUIVO_HTML_COLORIDO)
-                js = f"window.open('{url_final}', '_blank').focus();"
-                st.components.v1.html(f"<script>{js}</script>", height=0, width=0)
+            url_base = st.experimental_get_url().split("/_")[0]
+            url_final = urljoin(url_base, ARQUIVO_HTML_COLORIDO)
+            js = f"window.open('{url_final}', '_blank').focus();"
+            st.components.v1.html(f"<script>{js}</script>", height=0, width=0)
         except Exception as e:
             st.error(f"❌ Erro ao aplicar coloração: {e}")
