@@ -26,13 +26,9 @@ with open(ARQUIVO_HTML_ENTRADA, "r", encoding="utf-8") as f:
 nome_para_tds = defaultdict(list)
 
 for td in soup.find_all("td"):
-    strong = td.find("strong")
-    if strong and strong.text:
-        nome_bruto = strong.text.strip()
-    else:
-        nome_bruto = td.get_text(separator=" ", strip=True)
-
-    chave = normalizar_nome(nome_bruto)
+    texto_completo = td.get_text(separator=" ", strip=True)
+    nome_base = texto_completo.split("-")[0].strip()
+    chave = normalizar_nome(nome_base)
     if chave and chave != "NAO INFORMADO" and chave != "-":
         nome_para_tds[chave].append(td)
 
@@ -72,6 +68,10 @@ nome_arquivo = f"static/{nome_base}.html"
 with open(nome_arquivo, "w", encoding="utf-8") as f:
     f.write(str(soup))
 
+print(f"✅ HTML colorido salvo como: {nome_arquivo}")
+
+# Abrir automaticamente no navegador (funciona localmente)
+webbrowser.open(f"file://{os.path.abspath(nome_arquivo)}")
 print(f"✅ HTML colorido salvo como: {nome_arquivo}")
 
 # Abrir automaticamente no navegador (funciona localmente)
