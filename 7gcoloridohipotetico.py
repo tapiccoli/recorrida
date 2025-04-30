@@ -64,12 +64,15 @@ for chave, tds in sorted(nome_para_tds.items()):
 
 # Detectar os nomes da célula azul (pai) e amarela (mãe) para nome do arquivo
 try:
-    azul = soup.find("td", style=lambda v: v and "#cccccc" in v.lower())
-    amarelo = soup.find("td", style=lambda v: v and "#ffff99" in v.lower())
-    nome_azul = normalizar_nome(azul.get_text(separator=" ", strip=True).split("-")[0].strip()) if azul else "azul"
-    nome_amarelo = normalizar_nome(amarelo.get_text(separator=" ", strip=True).split("-")[0].strip()) if amarelo else "amarelo"
-    nome_base = f"{nome_azul}_x_{nome_amarelo}"
-    nome_arquivo = f"static/{nome_base}.html"
+    nome1_element = soup.find('td', class_='xl9532535')
+    nome2_element = soup.find('td', class_='xl10432535')
+    if nome1_element and nome2_element:
+        nome1 = normalizar_nome(nome1_element.get_text(separator=" ", strip=True))
+        nome2 = normalizar_nome(nome2_element.get_text(separator=" ", strip=True))
+        nome_arquivo = f"static/{nome1}_e_{nome2}.html"
+    else:
+        print("Aviso: Não foi possível encontrar as células com os nomes dos animais. Usando nome padrão.")
+        nome_arquivo = "static/pedigree_colorido.html"  # Nome padrão
 except Exception as e:
     print(f"Erro ao encontrar células para nomear arquivo: {e}. Usando nome padrão.")
     nome_arquivo = "static/pedigree_colorido.html"  # Nome padrão em caso de erro
