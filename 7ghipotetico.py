@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from bs4 import BeautifulSoup
+from bs4 import beautifulsoup4
 import os
 from collections import defaultdict
 import subprocess
