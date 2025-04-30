@@ -11,8 +11,8 @@ ARQUIVO_HTML_SAIDA = "static/pedigree_colorido.html"
 def normalizar_nome(nome):
     nome = nome.upper()
     nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('utf-8')
-    nome = re.sub(r"-\s*B\d+", "", nome)  # remove - B123456
-    nome = re.sub(r"/\s*\w+", "", nome)    # remove / Pelagem
+    nome = re.sub(r"-\s*[A-Z\*]{0,3}\d{3,}", "", nome)  # remove - B123456, - *000333, - UD000059
+    nome = re.sub(r"/\s*[^/]*$", "", nome)                # remove / pelagem
     return nome.strip()
 
 # Carregar o HTML de entrada
