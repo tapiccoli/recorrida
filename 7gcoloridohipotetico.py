@@ -69,7 +69,7 @@ try:
     if nome1_element and nome2_element:
         nome1 = normalizar_nome(nome1_element.get_text(separator=" ", strip=True))
         nome2 = normalizar_nome(nome2_element.get_text(separator=" ", strip=True))
-        nome_arquivo = f"static/{nome1}_e_{nome2}.html"
+        nome_arquivo = f"{nome1}_e_{nome2}.html"
     else:
         print("Aviso: Não foi possível encontrar as células com os nomes dos animais. Usando nome padrão.")
         nome_arquivo = "static/pedigree_colorido.html"  # Nome padrão
@@ -88,6 +88,8 @@ except Exception as e:
 
 # Abrir automaticamente no navegador (funciona localmente)
 try:
-    webbrowser.open(f"file://{os.path.abspath(nome_arquivo)}")
+    caminho_completo = os.path.abspath(nome_arquivo)
+    webbrowser.open(f"file://{caminho_completo}")
 except Exception as e:
     print(f"Erro ao abrir o arquivo no navegador: {e}")
+
