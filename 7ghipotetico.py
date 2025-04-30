@@ -14,6 +14,11 @@ ARQUIVO_HTML_BASE = "7gbasehipotetico.html"
 st.set_page_config(page_title="Pedigree por Macho e Fêmea", layout="centered")
 st.title("🏏️ Gerador de Pedigree (Macho + Fêmea)")
 
+st.markdown("<script>window.getBaseUrl = function() { return window.location.origin; }</script>", unsafe_allow_html=True)
+
+def obter_url_base():
+    return ""  # Substituído por JavaScript que roda no cliente
+
 try:
     planilhas = pd.read_excel(ARQUIVO_PLANILHA, sheet_name=None, dtype=str)
     df_machos = planilhas.get("Machos")
@@ -111,13 +116,7 @@ if "animal_macho" in st.session_state and "animal_femea" in st.session_state:
     st.components.v1.html(html_resultado, height=600, scrolling=True)
 
     if st.button("🔎 Abrir Pedigree em Nova Aba"):
-        try:
-            url_base = st.experimental_get_url().split("/_")[0]
-            url_final = urljoin(url_base, ARQUIVO_HTML)
-            js = f"window.open('{url_final}', '_blank').focus();"
-            st.components.v1.html(f"<script>{js}</script>", height=0, width=0)
-        except Exception as e:
-            st.error(f"❌ Erro ao abrir nova aba: {e}")
+        st.components.v1.html(f"<script>window.open(window.getBaseUrl() + '/static/pedigree.html', '_blank');</script>", height=0, width=0)
 
     st.markdown("---")
     st.subheader("🎨 Coloração de Duplicados")
@@ -160,9 +159,7 @@ if "animal_macho" in st.session_state and "animal_femea" in st.session_state:
             with open(ARQUIVO_HTML_COLORIDO, "w", encoding="utf-8") as f:
                 f.write(str(soup))
 
-            url_base = st.experimental_get_url().split("/_")[0]
-            url_final = urljoin(url_base, ARQUIVO_HTML_COLORIDO)
-            js = f"window.open('{url_final}', '_blank').focus();"
-            st.components.v1.html(f"<script>{js}</script>", height=0, width=0)
+            st.components.v1.html(f"<script>window.open(window.getBaseUrl() + '/static/pedigree_colorido.html', '_blank');</script>", height=0, width=0)
+
         except Exception as e:
             st.error(f"❌ Erro ao aplicar coloração: {e}")
