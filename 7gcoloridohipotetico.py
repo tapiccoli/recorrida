@@ -8,19 +8,25 @@ import os
 ARQUIVO_HTML_ENTRADA = "static/pedigree.html"
 
 # Função de normalização robusta para nomes
-
 def normalizar_nome(nome):
     nome = nome.upper()
     nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('utf-8')
     nome = re.sub(r"-\s*[A-Z\*]{0,3}\d{3,}", "", nome)  # remove registros
-    nome = re.sub(r"/\s*[^/]*$", "", nome)                # remove pelagem
-    nome = re.sub(r"\s+", " ", nome)                       # remove espaços extras
+    nome = re.sub(r"/\s*[^/]*$", "", nome)  # remove pelagem
+    nome = re.sub(r"\s+", " ", nome)  # remove espaços extras
     nome = nome.replace("\xa0", " ").strip()
     return nome
 
 # Carregar o HTML de entrada
-with open(ARQUIVO_HTML_ENTRADA, "r", encoding="utf-8") as f:
-    soup = BeautifulSoup(f, "html.parser")
+try:
+    with open(ARQUIVO_HTML_ENTRADA, "r", encoding="utf-8") as f:
+        soup = BeautifulSoup(f, "html.parser")
+except FileNotFoundError:
+    print(f"Erro: Arquivo HTML não encontrado em: {ARQUIVO_HTML_ENTRADA}")
+    exit()
+except Exception as e:
+    print(f"Erro ao abrir ou analisar o arquivo HTML: {e}")
+    exit()
 
 # Agrupar nomes normalizados para identificar duplicados
 nome_para_tds = defaultdict(list)
@@ -57,23 +63,30 @@ for chave, tds in sorted(nome_para_tds.items()):
         td["style"] = f"{estilo_atual}; border-left: 8px solid {cor};"
 
 # Detectar os nomes da célula azul (pai) e amarela (mãe) para nome do arquivo
-azul = soup.find("td", style=lambda v: v and "#cccccc" in v.lower())
-amarelo = soup.find("td", style=lambda v: v and "#ffff99" in v.lower())
-nome_azul = azul.get_text(strip=True).split("-")[0].strip().replace("\n", " ") if azul else "azul"
-nome_amarelo = amarelo.get_text(strip=True).split("-")[0].strip().replace("\n", " ") if amarelo else "amarelo"
-nome_base = f"{nome_azul}_x_{nome_amarelo}"
-nome_arquivo = f"static/{nome_base}.html"
+try:
+    azul = soup.find("td", style=lambda v: v and "#cccccc" in v.lower())
+    amarelo = soup.find("td", style=lambda v: v and "#ffff99" in v.lower())
+    nome_azul = azul.get_text(strip=True).split("-")[0].strip().replace("\n", " ") if azul else "azul"
+    nome_amarelo = amarelo.get_text(strip=True).split("-")[0].strip().replace("\n", " ") if amarelo else "amarelo"
+    nome_base = f"{nome_azul}_x_{nome_amarelo}"
+    nome_arquivo = f"static/{nome_base}.html"
+except Exception as e:
+    print(f"Erro ao encontrar células para nomear arquivo: {e}. Usando nome padrão.")
+    nome_arquivo = "static/pedigree_colorido.html"  # Nome padrão em caso de erro
 
 # Salvar HTML final
-with open(nome_arquivo, "w", encoding="utf-8") as f:
-    f.write(str(soup))
-
-print(f"✅ HTML colorido salvo como: {nome_arquivo}")
+try:
+    with open(nome_arquivo, "w", encoding="utf-8") as f:
+        f.write(str(soup))
+    print(f"✅ HTML colorido salvo como: {nome_arquivo}")
+except Exception as e:
+    print(f"Erro ao salvar o arquivo HTML: {e}")
+    exit()
 
 # Abrir automaticamente no navegador (funciona localmente)
-webbrowser.open(f"file://{os.path.abspath(nome_arquivo)}")
-print(f"✅ HTML colorido salvo como: {nome_arquivo}")
+try:
+    webbrowser.open(f"file://{os.path.abspath(nome_arquivo)}")
+except Exception as e:
+    print(f"Erro ao abrir o arquivo no navegador: {e}")
 
-# Abrir automaticamente no navegador (funciona localmente)
-webbrowser.open(f"file://{os.path.abspath(nome_arquivo)}")
 
