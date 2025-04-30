@@ -1,4 +1,4 @@
-pandas
 beautifulsoup4
-openpyxl
+pandas
 streamlit
+openpyxl
