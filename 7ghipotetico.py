@@ -101,23 +101,16 @@ if "animal_macho" in st.session_state and "animal_femea" in st.session_state:
     if soup.head:
         soup.head.append(style_tag)
 
-    with open(ARQUIVO_HTML, "w", encoding="utf-8") as f:
-        f.write(str(soup))
-
-    with open(ARQUIVO_HTML, "r", encoding="utf-8") as f:
-        html_resultado = f.read()
-
+    html_resultado = str(soup)
     st.components.v1.html(html_resultado, height=600, scrolling=True)
-    st.markdown(f"[🔎 Abrir Pedigree em Nova Aba](/static/pedigree.html)", unsafe_allow_html=True)
+    st.download_button("⬇️ Baixar Pedigree HTML", data=html_resultado, file_name="pedigree.html", mime="text/html")
 
     st.markdown("---")
     st.subheader("🎨 Coloração de Duplicados")
 
     if st.button("COLORIR DUPLICAÇÕES"):
         try:
-            with open(ARQUIVO_HTML, "r", encoding="utf-8") as f:
-                soup = BeautifulSoup(f, "html.parser")
-
+            soup = BeautifulSoup(html_resultado, "html.parser")
             nome_para_tds = defaultdict(list)
             for td in soup.find_all("td"):
                 nome = td.get_text(strip=True)
@@ -148,10 +141,9 @@ if "animal_macho" in st.session_state and "animal_femea" in st.session_state:
                     estilo_atual = td.get("style", "")
                     td["style"] = f"{estilo_atual}; border-left: 8px solid {cor};"
 
-            with open(ARQUIVO_HTML_COLORIDO, "w", encoding="utf-8") as f:
-                f.write(str(soup))
-
-            st.markdown(f"[🎨 Ver Pedigree Colorido em Nova Aba](/static/pedigree_colorido.html)", unsafe_allow_html=True)
+            html_colorido = str(soup)
+            st.components.v1.html(html_colorido, height=600, scrolling=True)
+            st.download_button("⬇️ Baixar Pedigree Colorido", data=html_colorido, file_name="pedigree_colorido.html", mime="text/html")
 
         except Exception as e:
             st.error(f"❌ Erro ao aplicar coloração: {e}")
