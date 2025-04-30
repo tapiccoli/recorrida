@@ -2,63 +2,45 @@ from bs4 import BeautifulSoup
 from collections import defaultdict
 import re
 import os
-import webbrowser
 
-ARQUIVO_HTML = "7ghipoteticocolorido.html"
-PASTA_SAIDA = "pedigreeshipoteticos"
+ARQUIVO_HTML_ENTRADA = "static/pedigree.html"
+ARQUIVO_HTML_SAIDA = "static/pedigree_colorido.html"
 
-# Criar a pasta se não existir
-os.makedirs(PASTA_SAIDA, exist_ok=True)
-
-# Carregar o HTML
-with open(ARQUIVO_HTML, "r", encoding="utf-8") as f:
+# Carregar o HTML de entrada
+with open(ARQUIVO_HTML_ENTRADA, "r", encoding="utf-8") as f:
     soup = BeautifulSoup(f, "html.parser")
 
-# Inicializar nomes
-nome_macho = None
-nome_femea = None
+# Identificar nome do animal principal (opcional, pode ser melhorado)
+nome_animal = None
+celula_principal = soup.find("td", bgcolor=re.compile(r"(?i)^f4b183$"))
+if celula_principal:
+    strong = celula_principal.find("strong")
+    if strong and strong.get_text(strip=True):
+        nome_animal = strong.get_text(strip=True)
 
-# Procurar todas as células <td>
-for td in soup.find_all("td"):
-    style = td.get("style", "")
-    if "#cccccc" in style:  # Fundo cinza (pai)
-        span = td.find("span")
-        if span and span.find("strong"):
-            nome_macho = span.find("strong").get_text(strip=True)
-    if "#ffff99" in style:  # Fundo amarelo (mãe)
-        span = td.find("span")
-        if span and span.find("strong"):
-            nome_femea = span.find("strong").get_text(strip=True)
-
-# Preparar nome seguro
-if nome_macho and nome_femea:
-    nome_macho_limpo = re.sub(r"[^\w]", "_", nome_macho)
-    nome_femea_limpo = re.sub(r"[^\w]", "_", nome_femea)
-    nome_arquivo = f"{nome_macho_limpo}x{nome_femea_limpo}.html"
-else:
-    nome_arquivo = "pedigree_fallback_colorido.html"
-
-caminho_completo = os.path.join(PASTA_SAIDA, nome_arquivo)
-
-# Colorir duplicados
+# Agrupar nomes para identificar duplicados
 nome_para_tds = defaultdict(list)
 for td in soup.find_all("td"):
     nome = None
+
     strong = td.find("strong")
     if strong and strong.string:
         nome = strong.string.strip()
+
     if not nome:
         a = td.find("a")
         if a and a.text:
             nome = a.text.strip()
+
     if not nome:
         texto_puro = td.get_text(strip=True)
         if texto_puro:
             nome = texto_puro
+
     if nome and nome.upper() != "NÃO INFORMADO" and nome != "-":
         nome_para_tds[nome].append(td)
 
-# Paleta de cores
+# Paleta de cores variadas
 cores_distintas = [
     "#FF0000", "#0000FF", "#008000", "#FFA500", "#800080",
     "#00CED1", "#DC143C", "#FFFF00", "#FF1493", "#20B2AA",
@@ -71,12 +53,14 @@ cores_distintas = [
     "#FFD700", "#7B68EE", "#3CB371", "#FFB6C1", "#6A5ACD"
 ]
 
+# Aplicar coloração
 grupo_idx = 0
 cores_usadas = {}
 
 for nome, tds in sorted(nome_para_tds.items()):
     if len(tds) < 2:
         continue
+
     if nome not in cores_usadas:
         cor = cores_distintas[grupo_idx % len(cores_distintas)]
         cores_usadas[nome] = cor
@@ -88,11 +72,8 @@ for nome, tds in sorted(nome_para_tds.items()):
         estilo_atual = td.get("style", "")
         td["style"] = f"{estilo_atual}; border-left: 8px solid {cor};"
 
-# Salvar novo HTML
-with open(caminho_completo, "w", encoding="utf-8") as f:
+# Salvar HTML final na pasta static
+with open(ARQUIVO_HTML_SAIDA, "w", encoding="utf-8") as f:
     f.write(str(soup))
 
-print(f"✅ HTML colorido salvo como: {caminho_completo}")
-
-# Abrir
-webbrowser.open(caminho_completo)
+print(f"✅ HTML colorido salvo como: {ARQUIVO_HTML_SAIDA}")
