@@ -66,8 +66,8 @@ for chave, tds in sorted(nome_para_tds.items()):
 try:
     azul = soup.find("td", style=lambda v: v and "#cccccc" in v.lower())
     amarelo = soup.find("td", style=lambda v: v and "#ffff99" in v.lower())
-    nome_azul = azul.get_text(strip=True).split("-")[0].strip().replace("\n", " ") if azul else "azul"
-    nome_amarelo = amarelo.get_text(strip=True).split("-")[0].strip().replace("\n", " ") if amarelo else "amarelo"
+    nome_azul = normalizar_nome(azul.get_text(separator=" ", strip=True).split("-")[0].strip()) if azul else "azul"
+    nome_amarelo = normalizar_nome(amarelo.get_text(separator=" ", strip=True).split("-")[0].strip()) if amarelo else "amarelo"
     nome_base = f"{nome_azul}_x_{nome_amarelo}"
     nome_arquivo = f"static/{nome_base}.html"
 except Exception as e:
@@ -88,5 +88,3 @@ try:
     webbrowser.open(f"file://{os.path.abspath(nome_arquivo)}")
 except Exception as e:
     print(f"Erro ao abrir o arquivo no navegador: {e}")
-
-
