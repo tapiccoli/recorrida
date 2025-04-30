@@ -7,12 +7,13 @@ import os
 
 ARQUIVO_HTML_ENTRADA = "static/pedigree.html"
 
-# Função de normalização
+# Função de normalização robusta para nomes
 def normalizar_nome(nome):
     nome = nome.upper()
     nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('utf-8')
     nome = re.sub(r"-\s*[A-Z\*]{0,3}\d{3,}", "", nome)  # remove - B123456, - *000333, - UD000059
     nome = re.sub(r"/\s*[^/]*$", "", nome)                # remove / pelagem
+    nome = re.sub(r"\s+", " ", nome)                       # remove múltiplos espaços
     return nome.strip()
 
 # Carregar o HTML de entrada
@@ -21,10 +22,11 @@ with open(ARQUIVO_HTML_ENTRADA, "r", encoding="utf-8") as f:
 
 # Agrupar nomes normalizados para identificar duplicados
 nome_para_tds = defaultdict(list)
+
 for td in soup.find_all("td"):
-    nome = td.get_text(strip=True)
-    chave = normalizar_nome(nome)
-    if chave and chave.upper() != "NAO INFORMADO" and chave != "-":
+    texto_bruto = td.get_text(separator=" ", strip=True)  # pega texto sem quebras, preserva espaçamento
+    chave = normalizar_nome(texto_bruto)
+    if chave and chave != "NAO INFORMADO" and chave != "-":
         nome_para_tds[chave].append(td)
 
 # Paleta de cores variadas
@@ -51,7 +53,8 @@ for chave, tds in sorted(nome_para_tds.items()):
 
     for td in tds:
         estilo_atual = td.get("style", "")
-        td["style"] = f"{estilo_atual}; border-left: 8px solid {cor};"
+        if f"border-left" not in estilo_atual:
+            td["style"] = f"{estilo_atual}; border-left: 8px solid {cor};"
 
 # Detectar os nomes da célula azul (pai) e amarela (mãe) para nome do arquivo
 azul = soup.find("td", style=lambda v: v and "#cccccc" in v.lower())
